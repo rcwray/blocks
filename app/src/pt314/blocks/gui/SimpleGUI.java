@@ -5,6 +5,10 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -25,8 +29,9 @@ import pt314.blocks.game.VerticalBlock;
  */
 public class SimpleGUI extends JFrame implements ActionListener {
 
-	private static final int NUM_ROWS = 5;
-	private static final int NUM_COLS = 5;
+	private int rows = 5;
+	private int cols = 5;
+	private int targetRow = 2;
 
 	private GameBoard board;
 	
@@ -54,6 +59,20 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		setVisible(true);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
+	
+	public SimpleGUI(String str) throws IllegalArgumentException, IOException
+	{
+		super("Blocks");
+		
+		initMenus();
+		
+		initBoard(str);
+		
+		pack();
+		setVisible(true);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		
+	}
 
 	private void initMenus() {
 		menuBar = new JMenuBar();
@@ -68,7 +87,14 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		newGameMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(SimpleGUI.this, "Coming soon...");
+				try {
+					dispose();
+					new SimpleGUI("app\\res\\puzzles\\puzzle-101.txt");
+				} catch (IllegalArgumentException e1) {
+					// TODO Auto-generated catch block
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+				}
 			}
 		});
 		gameMenu.add(newGameMenuItem);
@@ -97,12 +123,12 @@ public class SimpleGUI extends JFrame implements ActionListener {
 	}
 	
 	private void initBoard() {
-		board = new GameBoard(NUM_COLS, NUM_ROWS);
-		buttonGrid = new GridButton[NUM_ROWS][NUM_COLS];
+		board = new GameBoard(rows, cols);
+		buttonGrid = new GridButton[rows][cols];
 		
-		setLayout(new GridLayout(NUM_ROWS, NUM_COLS));
-		for (int row = 0; row < NUM_ROWS; row++) {
-			for (int col = 0; col < NUM_COLS; col++) {
+		setLayout(new GridLayout(rows, cols));
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
 				GridButton cell = new GridButton(row, col);
 				cell.setPreferredSize(new Dimension(64, 64));
 				cell.addActionListener(this);
@@ -121,12 +147,90 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		
 		updateUI();
 	}
+	
+	private void initBoard(String str) throws IllegalArgumentException, IOException
+	{
+		Path filePath = Paths.get(str);
+		Scanner scanner = new Scanner(filePath);
+		rows = scanner.nextInt();
+		cols = scanner.nextInt();
+		int targetblocks = 0;
+		
+		if(rows < 1 || cols < 1)
+		{
+			throw new IllegalArgumentException();
+		}
+		String next;
+		char[] fileLine;
+		
+		board = new GameBoard(rows, cols);
+		buttonGrid = new GridButton[rows][cols];
+		setLayout(new GridLayout(rows, cols));
+		
+		
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				GridButton cell = new GridButton(row, col);
+				cell.setPreferredSize(new Dimension(64, 64));
+				cell.addActionListener(this);
+				cell.setOpaque(true);
+				buttonGrid[row][col] = cell;
+				add(cell);
+			}
+		}
+		
+		for(int i = 0; i< rows; i++)
+		{
+			next = scanner.next();
+			fileLine = next.toCharArray();
+			for(int j = 0; j< cols; j++)
+			{
+				if(fileLine[j] == 'H')
+				{
+					board.placeBlockAt(new HorizontalBlock(), i, j);
+				}
+				else if(fileLine[j] == 'V')
+				{
+					board.placeBlockAt(new VerticalBlock(), i, j);
+				}
+				else if(fileLine[j] == 'T')
+				{
+					if(targetblocks < 1)
+					{
+						targetblocks++;
+						board.placeBlockAt(new TargetBlock(), i, j);
+						targetRow = i;
+						for(int k = j; k<cols;k++)
+						{
+							if(fileLine[k] == 'H')
+							{
+								throw new IllegalArgumentException("Horizontal blocking the Target block");
+							}
+						}
+					}
+					else throw new IllegalArgumentException("Multiple Target Blocks");
+				}
+				else if(fileLine[j] == '.')
+				{
+					
+				}
+				else
+				{
+					throw new IllegalArgumentException("Invalid Token");
+				}
+			}
+		}
+		
+		scanner.close();
+		updateUI();
+		
+	}
 
 	// Update display based on the state of the board...
 	// TODO: make this more efficient
 	private void updateUI() {
-		for (int row = 0; row < NUM_ROWS; row++) {
-			for (int col = 0; col < NUM_COLS; col++) {
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
 				Block block = board.getBlockAt(row, col);
 				JButton cell = buttonGrid[row][col];
 				if (block == null)
@@ -208,7 +312,15 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		if (!board.moveBlock(selectedBlockRow, selectedBlockCol, dir, dist)) {
 			System.err.println("Invalid move!");
 		}
-		else {
+		else 
+		{
+			if(selectedBlock.getClass().getName() == "pt314.blocks.game.TargetBlock")
+			{
+				if(col == cols-1)
+				{
+					System.out.println("COOL");
+				}
+			}
 			selectedBlock = null;
 			updateUI();
 		}
@@ -235,3 +347,9 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		return null;
 	}
 }
+
+//if the block being moved is T
+//check if t.col == col-1 and if so show message.
+
+//last part is changing the look.
+//jeepers mr. you sure are good at this game

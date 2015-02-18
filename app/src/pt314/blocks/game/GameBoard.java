@@ -6,7 +6,7 @@ public class GameBoard {
 	private int height;
 	private Block[][] blocks;
 	
-	public GameBoard(int width, int height) {
+	public GameBoard(int height, int width) {
 		this.width = width;
 		this.height = height;
 		blocks = new Block[height][width];

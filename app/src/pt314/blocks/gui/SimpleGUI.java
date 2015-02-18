@@ -3,6 +3,7 @@ package pt314.blocks.gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -171,7 +173,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
 				GridButton cell = new GridButton(row, col);
-				cell.setPreferredSize(new Dimension(64, 64));
+				cell.setPreferredSize(new Dimension(75, 75));
 				cell.addActionListener(this);
 				cell.setOpaque(true);
 				buttonGrid[row][col] = cell;
@@ -229,18 +231,34 @@ public class SimpleGUI extends JFrame implements ActionListener {
 	// Update display based on the state of the board...
 	// TODO: make this more efficient
 	private void updateUI() {
+		ImageIcon imageGreen = new ImageIcon("app\\res\\images\\blockGreenArrow.png");
+		ImageIcon imageRed = new ImageIcon("app\\res\\images\\blockRedArrow.png");
+		ImageIcon imageYellow = new ImageIcon("app\\res\\images\\blockYellowArrow.png");
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
 				Block block = board.getBlockAt(row, col);
 				JButton cell = buttonGrid[row][col];
 				if (block == null)
+				{
+					cell.setIcon(null);
 					cell.setBackground(Color.LIGHT_GRAY);
+				}
 				else if (block instanceof TargetBlock)
-					cell.setBackground(Color.YELLOW);
+				{
+					cell.setBackground(Color.LIGHT_GRAY);
+					cell.setIcon(imageYellow);
+				}
 				else if (block instanceof HorizontalBlock)
-					cell.setBackground(Color.BLUE);
+				{
+					cell.setBackground(Color.LIGHT_GRAY);
+					cell.setIcon(imageRed);
+				}
 				else if (block instanceof VerticalBlock)
-					cell.setBackground(Color.RED);
+				{
+					cell.setBackground(Color.LIGHT_GRAY);
+					cell.setIcon(imageGreen);
+				}
+					
 			}
 		}
 	}
@@ -318,7 +336,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
 			{
 				if(col == cols-1)
 				{
-					System.out.println("COOL");
+					JOptionPane.showMessageDialog(SimpleGUI.this, "Congratulations, you reached the goal!");
 				}
 			}
 			selectedBlock = null;
